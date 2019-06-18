@@ -1,9 +1,11 @@
 #include <iostream>
-#include "xeus_calc_interpreter.hpp"
 #include <vector>
 #include <sstream>
 #include <stack>
+
 #include "xeus/xinterpreter.hpp"
+
+#include "xeus_calc_interpreter.hpp"
 
 namespace xeus_calc
 {
@@ -127,7 +129,6 @@ namespace xeus_calc
                 else
                 { //just in case
                     publish_stream("stderr", "Error");
-                    std::exit(1);
                 }
             }
             std::stringstream ss;
