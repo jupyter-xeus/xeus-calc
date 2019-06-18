@@ -1,0 +1,9 @@
+{
+    "display_name": "xeus-calc",
+    "argv": [
+        "/home/thibault/miniconda3/envs/xeus/bin/xeus-calc",
+        "-f",
+        "{connection_file}"
+    ],
+    "language": "python"
+}
