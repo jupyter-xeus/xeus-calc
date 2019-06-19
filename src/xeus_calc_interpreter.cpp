@@ -1,12 +1,18 @@
 #include <iostream>
-#include "xeus_calc_interpreter.hpp"
 #include <vector>
 #include <sstream>
 #include <stack>
+
 #include "xeus/xinterpreter.hpp"
+
+#include "xeus_calc_interpreter.hpp"
 
 namespace xeus_calc
 {
+    void interpreter::configure_impl()
+    {
+    }
+
     std::string interpreter::parse_rpn(const std::string& infix)
     {
         std::string operators = "-+/*^()";
@@ -123,7 +129,6 @@ namespace xeus_calc
                 else
                 { //just in case
                     publish_stream("stderr", "Error");
-                    std::exit(1);
                 }
             }
             std::stringstream ss;
@@ -155,7 +160,7 @@ namespace xeus_calc
 
         result += std::to_string(compute_rpn(parse_rpn(code)));
 		pub_data["text/plain"] = result;
-        publish_execution_result(execution_counter, std::move(pub_data), nl::json());
+        publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
 
         // You can also use this method for publishing errors to the client, if the code
         // failed to execute
@@ -164,15 +169,58 @@ namespace xeus_calc
 
         nl::json jresult;
         jresult["status"] = "ok";
+        jresult["payload"] = nl::json::array();
+        jresult["user_expressions"] = nl::json::object();
         return jresult;
     }
+
+    nl::json interpreter::complete_request_impl(const std::string& /*code*/,int /*cursor_pos*/)
+    {
+        nl::json jresult;
+        jresult["status"] = "ok";
+        return jresult;
+    };
+
+    nl::json interpreter::inspect_request_impl(const std::string& /*code*/, int /*cursor_pos*/,int /*detail_level*/)
+    {
+        nl::json jresult;
+        jresult["status"] = "ok";
+        return jresult;
+    };
+
+    nl::json interpreter::is_complete_request_impl(const std::string& /*code*/)
+    {
+        nl::json jresult;
+        jresult["status"] = "complete";
+        return jresult;
+    };
 
     nl::json interpreter::kernel_info_request_impl()
     {
         nl::json result;
         result["implementation"] = "xeus-calc";
         result["implementation_version"] = "0.1.0";
+        std::string banner = ""
+        " **     ** ******** **     **  ********         ******      **     **         ****** \n"
+        "//**   ** /**///// /**    /** **//////         **////**    ****   /**        **////** \n"
+        " //** **  /**      /**    /**/**              **    //    **//**  /**       **    // \n"
+        "  //***   /******* /**    /**/********* *****/**         **  //** /**      /**       \n"
+        "   **/**  /**////  /**    /**////////**///// /**        **********/**      /**       \n"
+        "  ** //** /**      /**    /**       /**      //**    **/**//////**/**      //**    ** \n"
+        " **   //**/********//*******  ********        //****** /**     /**/******** //****** \n"
+        "//     // ////////  ///////  ////////          //////  //      // ////////   ////// \n"
+        "\n"
+        " Implementation of a calculator based on RPN through Xeus";
+        result["banner"] = banner;
+        result["language_info"]["name"] = "calc";
+        result["language_info"]["version"] = "";
+        result["language_info"]["mimetype"] = "";
+        result["language_info"]["file_extension"] = "";
         return result;
+    }
+
+    void interpreter::shutdown_request_impl()
+    {
     }
 
 }

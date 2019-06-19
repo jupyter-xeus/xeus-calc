@@ -21,6 +21,12 @@ namespace xeus_calc
 
     private:
 
+        void configure_impl() override;
+
+         std::string parse_rpn(const std::string& infix);
+
+        double compute_rpn(const std::string &expr);
+
         nl::json execute_request_impl(int execution_counter,
                                       const std::string& code,
                                       bool /*silent*/,
@@ -28,37 +34,19 @@ namespace xeus_calc
                                       nl::json /*user_expressions*/,
                                       bool /*allow_stdin*/) override;
 
-        nl::json kernel_info_request_impl() override;
-
-        void configure_impl() override {};
-
-
         nl::json complete_request_impl(const std::string& /*code*/,
-                                       int /*cursor_pos*/) override {
-                                           nl::json jresult;
-                                           jresult["status"] = "ok";
-                                           return jresult;
-                                       };
+                                       int /*cursor_pos*/) override;
 
         nl::json inspect_request_impl(const std::string& /*code*/,
                                       int /*cursor_pos*/,
-                                      int /*detail_level*/) override {
-                                          nl::json jresult;
-                                          jresult["status"] = "ok";
-                                          return jresult;
-                                      };
+                                      int /*detail_level*/) override;
 
-        nl::json is_complete_request_impl(const std::string& /*code*/) override {
-            nl::json jresult;
-            jresult["status"] = "complete";
-            return jresult;
-        };
+        nl::json is_complete_request_impl(const std::string& /*code*/) override;
 
-        double compute_rpn(const std::string &expr);
-        std::string parse_rpn(const std::string& infix);
 
-        void shutdown_request_impl() override {};
+        nl::json kernel_info_request_impl() override;
 
+         void shutdown_request_impl() override;
 
     };
 }
