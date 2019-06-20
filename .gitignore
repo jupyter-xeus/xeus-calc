@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+build/*
+notebooks/.ipynb_checkpoints/*
+share/jupyter/kernels/xeus-calc/kernel.json
