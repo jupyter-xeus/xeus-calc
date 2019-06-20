@@ -50,7 +50,7 @@ set(XEUS_CALC_SRC
 
 # My kernel executable
 add_executable(${EXECUTABLE_NAME} src/main.cpp ${XEUS_CALC_SRC} )
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE xeus)
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC xeus)
 
 if (APPLE)
     set_target_properties(${EXECUTABLE_NAME} PROPERTIES
