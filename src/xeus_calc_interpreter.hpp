@@ -23,7 +23,9 @@ namespace xeus_calc
 
         void configure_impl() override;
 
-         std::string parse_rpn(const std::string& infix);
+        std::string formating_expr(const std::string& expr);
+
+        std::string parse_rpn(const std::string& infix);
 
         double compute_rpn(const std::string &expr);
 

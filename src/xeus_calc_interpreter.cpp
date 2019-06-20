@@ -2,6 +2,7 @@
 #include <vector>
 #include <sstream>
 #include <stack>
+#include <cctype>
 
 #include "xeus/xinterpreter.hpp"
 
@@ -13,31 +14,46 @@ namespace xeus_calc
     {
     }
 
-    std::string interpreter::parse_rpn(const std::string& infix)
+    std::string interpreter::formating_expr(const std::string& expr)
     {
         std::string operators = "-+/*^()";
-        std::string spaced_infix;
-        for (const char& itr : infix)
+        std::string spaced_expr;
+        for (char itr : expr)
         {
+            std::istringstream num(std::to_string(itr));
             size_t op = operators.find(itr);
             if(op != std::string::npos)
             {
-                spaced_infix += ' ';
-                spaced_infix += itr;
-                spaced_infix += ' ';
+                spaced_expr += ' ';
+                spaced_expr += itr;
+                spaced_expr += ' ';
+            }
+            else if (isdigit(itr) || isdigit(spaced_expr.back()) && itr == '.')
+            {
+                spaced_expr += itr;
+            }
+            else if (itr == ' ')
+            {
+                continue;
             }
             else
             {
-                spaced_infix += itr;
+                std::string s = "one of the characters presents an issue : ";
+                s.push_back(itr);
+                throw std::runtime_error(s);
             }
         }
+        return spaced_expr;
+    }
 
+    std::string interpreter::parse_rpn(const std::string& infix)
+    {
         const std::string ops = "-+/*^";
         std::stringstream ss;
 
         std::stack<int> s;
 
-        std::stringstream input(spaced_infix);
+        std::stringstream input(infix);
         std::string token;
         while (std::getline(input, token, ' '))
         {
@@ -126,10 +142,10 @@ namespace xeus_calc
                     stack.push_back(firstOperand + secondOperand);
                 else if (token == "^")
                     stack.push_back(std::pow(firstOperand, secondOperand));
-                else
+                /*else
                 { //just in case
-                    publish_stream("stderr", "Error");
-                }
+                    throw std::runtime_error("Did not understand or find the operator");
+                }*/
             }
             std::stringstream ss;
             std::copy(stack.begin(), stack.end(), std::ostream_iterator<double>(ss, " "));
@@ -157,22 +173,32 @@ namespace xeus_calc
 
         nl::json pub_data;
         std::string result = "Result = ";
-
-        result += std::to_string(compute_rpn(parse_rpn(code)));
-		pub_data["text/plain"] = result;
-        publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
-
+        try
+        {
+            std::string spaced_code = formating_expr(code);
+            result += std::to_string(compute_rpn(parse_rpn(spaced_code)));
+            pub_data["text/plain"] = result;
+            publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
+            nl::json jresult;
+            jresult["status"] = "ok";
+            jresult["payload"] = nl::json::array();
+            jresult["user_expressions"] = nl::json::object();
+            return jresult;
+        }
+        catch (const std::runtime_error& err)
+        {
+            nl::json jresult;
+            publish_stream("stderr", err.what());
+            publish_execution_error("wrong character", "", {});
+            jresult["status"] = "error";
+            return jresult;
+        }
         // You can also use this method for publishing errors to the client, if the code
         // failed to execute
         // publish_execution_error(error_name, error_value, error_traceback);
         // publish_execution_error("TypeError", "123", {"!@#$", "*(*"});
 
-        nl::json jresult;
-        jresult["status"] = "ok";
-        jresult["payload"] = nl::json::array();
-        jresult["user_expressions"] = nl::json::object();
-        return jresult;
-    }
+   }
 
     nl::json interpreter::complete_request_impl(const std::string& /*code*/,int /*cursor_pos*/)
     {
@@ -187,6 +213,8 @@ namespace xeus_calc
         jresult["status"] = "ok";
         return jresult;
     };
+
+
 
     nl::json interpreter::is_complete_request_impl(const std::string& /*code*/)
     {
