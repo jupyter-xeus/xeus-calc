@@ -38,7 +38,7 @@ namespace xeus_calc
             }
             else
             {
-                std::string s = "one of the characters presents an issue : ";
+                std::string s = "Syntax error :\none of the characters presents an issue : ";
                 s.push_back(itr);
                 throw std::runtime_error(s);
             }
@@ -130,19 +130,27 @@ namespace xeus_calc
                 publish_stream("stdout", "Operate\t\t");
                 double secondOperand = stack.back();
                 stack.pop_back();
-                double firstOperand = stack.back();
-                stack.pop_back();
-                if (token == "*")
-                    stack.push_back(firstOperand * secondOperand);
-                else if (token == "/")
-                    stack.push_back(firstOperand / secondOperand);
-                else if (token == "-")
-                    stack.push_back(firstOperand - secondOperand);
-                else if (token == "+")
-                    stack.push_back(firstOperand + secondOperand);
-                else if (token == "^")
-                    stack.push_back(std::pow(firstOperand, secondOperand));
-                /*else
+                if (stack.empty())
+                {
+                    throw std::runtime_error("Syntax error :\nmissing operand");
+                }
+                else
+                {
+                    double firstOperand = stack.back();
+                    stack.pop_back();
+                     if (token == "*")
+                        stack.push_back(firstOperand * secondOperand);
+                    else if (token == "/")
+                        stack.push_back(firstOperand / secondOperand);
+                    else if (token == "-")
+                        stack.push_back(firstOperand - secondOperand);
+                    else if (token == "+")
+                        stack.push_back(firstOperand + secondOperand);
+                    else if (token == "^")
+                        stack.push_back(std::pow(firstOperand, secondOperand));
+
+                }
+                               /*else
                 { //just in case
                     throw std::runtime_error("Did not understand or find the operator");
                 }*/
@@ -189,7 +197,7 @@ namespace xeus_calc
         {
             nl::json jresult;
             publish_stream("stderr", err.what());
-            publish_execution_error("wrong character", "", {});
+            //publish_execution_error(err.what(), "", {});
             jresult["status"] = "error";
             return jresult;
         }
