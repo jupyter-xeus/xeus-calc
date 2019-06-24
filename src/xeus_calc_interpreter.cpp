@@ -50,6 +50,8 @@ namespace xeus_calc
     {
         const std::string ops = "-+/*^";
         std::stringstream ss;
+        std::string characters = ".()";
+        std::vector<char> parenthesis;
 
         std::stack<int> s;
 
@@ -83,17 +85,27 @@ namespace xeus_calc
             }
             else if (c == '(')
             {
+                parenthesis.push_back(c);
                 s.push(-2); // -2 stands for '('
             }
             else if (c == ')')
             {
-                // until '(' on stack, pop operators.
-                while (s.top() != -2)
+                if (!parenthesis.empty())
                 {
-                    ss << ops[s.top()] << ' ';
+                    parenthesis.pop_back();
+                    // until '(' on stack, pop operators.
+                    while (s.top() != -2)
+                    {
+                        ss << ops[s.top()] << ' ';
+                        s.pop();
+                    }
                     s.pop();
+                    continue;
                 }
-                s.pop();
+                else
+                {
+                    throw std::runtime_error("Syntax error :\nmissing or misplaced parenthesis");
+                }
             }
             else
             {
@@ -106,8 +118,16 @@ namespace xeus_calc
             ss << ops[s.top()] << ' ';
             s.pop();
         }
-        publish_stream("stdout", "RPN = " + ss.str());
-        return ss.str();
+
+        if (parenthesis.empty())
+        {
+            publish_stream("stdout", "RPN = " + ss.str());
+            return ss.str();
+        }
+        else
+        {
+            throw std::runtime_error("Syntax error :\nmissing or misplaced parenthesis");
+        }
     }
 
     double interpreter::compute_rpn(const std::string &expr)
