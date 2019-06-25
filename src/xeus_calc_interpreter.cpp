@@ -50,8 +50,7 @@ namespace xeus_calc
     {
         const std::string ops = "-+/*^";
         std::stringstream ss;
-        std::string characters = ".()";
-        std::vector<char> parenthesis;
+        std::size_t parenthesis_counter = 0;
 
         std::stack<int> s;
 
@@ -85,14 +84,14 @@ namespace xeus_calc
             }
             else if (c == '(')
             {
-                parenthesis.push_back(c);
+                ++ parenthesis_counter;
                 s.push(-2); // -2 stands for '('
             }
             else if (c == ')')
             {
-                if (!parenthesis.empty())
+                if (parenthesis_counter > 0)
                 {
-                    parenthesis.pop_back();
+                    -- parenthesis_counter;
                     // until '(' on stack, pop operators.
                     while (s.top() != -2)
                     {
@@ -118,8 +117,7 @@ namespace xeus_calc
             ss << ops[s.top()] << ' ';
             s.pop();
         }
-
-        if (parenthesis.empty())
+        if (parenthesis_counter == 0)
         {
             publish_stream("stdout", "RPN = " + ss.str());
             return ss.str();
@@ -147,25 +145,28 @@ namespace xeus_calc
             }
             else
             {
-                publish_stream("stdout", "Operate\t\t");
-                double secondOperand = stack.back();
-                stack.pop_back();
-                double firstOperand = stack.back();
-                stack.pop_back();
-                if (token == "*")
-                    stack.push_back(firstOperand * secondOperand);
-                else if (token == "/")
-                    stack.push_back(firstOperand / secondOperand);
-                else if (token == "-")
-                    stack.push_back(firstOperand - secondOperand);
-                else if (token == "+")
-                    stack.push_back(firstOperand + secondOperand);
-                else if (token == "^")
-                    stack.push_back(std::pow(firstOperand, secondOperand));
-                /*else
-                { //just in case
-                    throw std::runtime_error("Did not understand or find the operator");
-                }*/
+                if (stack.size() >= 2)
+                {
+                    publish_stream("stdout", "Operate\t\t");
+                    double secondOperand = stack.back();
+                    stack.pop_back();
+                    double firstOperand = stack.back();
+                    stack.pop_back();
+                    if (token == "*")
+                        stack.push_back(firstOperand * secondOperand);
+                    else if (token == "/")
+                        stack.push_back(firstOperand / secondOperand);
+                    else if (token == "-")
+                        stack.push_back(firstOperand - secondOperand);
+                    else if (token == "+")
+                        stack.push_back(firstOperand + secondOperand);
+                    else if (token == "^")
+                        stack.push_back(std::pow(firstOperand, secondOperand));
+                }
+                else
+                {
+                    throw std::runtime_error("Syntax error:\nmissing operand");
+                }
             }
             std::stringstream ss;
             std::copy(stack.begin(), stack.end(), std::ostream_iterator<double>(ss, " "));
@@ -209,7 +210,6 @@ namespace xeus_calc
         {
             nl::json jresult;
             publish_stream("stderr", err.what());
-            publish_execution_error("wrong character", "", {});
             jresult["status"] = "error";
             return jresult;
         }
