@@ -50,6 +50,7 @@ namespace xeus_calc
     {
         const std::string ops = "-+/*^";
         std::stringstream ss;
+        std::size_t parenthesis_counter = 0;
 
         std::stack<int> s;
 
@@ -83,17 +84,27 @@ namespace xeus_calc
             }
             else if (c == '(')
             {
+                ++ parenthesis_counter;
                 s.push(-2); // -2 stands for '('
             }
             else if (c == ')')
             {
-                // until '(' on stack, pop operators.
-                while (s.top() != -2)
+                if (parenthesis_counter > 0)
                 {
-                    ss << ops[s.top()] << ' ';
+                    -- parenthesis_counter;
+                    // until '(' on stack, pop operators.
+                    while (s.top() != -2)
+                    {
+                        ss << ops[s.top()] << ' ';
+                        s.pop();
+                    }
                     s.pop();
+                    continue;
                 }
-                s.pop();
+                else
+                {
+                    throw std::runtime_error("Syntax error :\nmissing or misplaced parenthesis");
+                }
             }
             else
             {
@@ -106,8 +117,15 @@ namespace xeus_calc
             ss << ops[s.top()] << ' ';
             s.pop();
         }
-        publish_stream("stdout", "RPN = " + ss.str());
-        return ss.str();
+        if (parenthesis_counter == 0)
+        {
+            publish_stream("stdout", "RPN = " + ss.str());
+            return ss.str();
+        }
+        else
+        {
+            throw std::runtime_error("Syntax error :\nmissing or misplaced parenthesis");
+        }
     }
 
     double interpreter::compute_rpn(const std::string &expr)
@@ -127,25 +145,28 @@ namespace xeus_calc
             }
             else
             {
-                publish_stream("stdout", "Operate\t\t");
-                double secondOperand = stack.back();
-                stack.pop_back();
-                double firstOperand = stack.back();
-                stack.pop_back();
-                if (token == "*")
-                    stack.push_back(firstOperand * secondOperand);
-                else if (token == "/")
-                    stack.push_back(firstOperand / secondOperand);
-                else if (token == "-")
-                    stack.push_back(firstOperand - secondOperand);
-                else if (token == "+")
-                    stack.push_back(firstOperand + secondOperand);
-                else if (token == "^")
-                    stack.push_back(std::pow(firstOperand, secondOperand));
-                /*else
-                { //just in case
-                    throw std::runtime_error("Did not understand or find the operator");
-                }*/
+                if (stack.size() >= 2)
+                {
+                    publish_stream("stdout", "Operate\t\t");
+                    double secondOperand = stack.back();
+                    stack.pop_back();
+                    double firstOperand = stack.back();
+                    stack.pop_back();
+                    if (token == "*")
+                        stack.push_back(firstOperand * secondOperand);
+                    else if (token == "/")
+                        stack.push_back(firstOperand / secondOperand);
+                    else if (token == "-")
+                        stack.push_back(firstOperand - secondOperand);
+                    else if (token == "+")
+                        stack.push_back(firstOperand + secondOperand);
+                    else if (token == "^")
+                        stack.push_back(std::pow(firstOperand, secondOperand));
+                }
+                else
+                {
+                    throw std::runtime_error("Syntax error:\nmissing operand");
+                }
             }
             std::stringstream ss;
             std::copy(stack.begin(), stack.end(), std::ostream_iterator<double>(ss, " "));
@@ -189,7 +210,6 @@ namespace xeus_calc
         {
             nl::json jresult;
             publish_stream("stderr", err.what());
-            publish_execution_error("wrong character", "", {});
             jresult["status"] = "error";
             return jresult;
         }
