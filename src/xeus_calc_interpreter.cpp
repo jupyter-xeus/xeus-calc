@@ -49,10 +49,10 @@ namespace xeus_calc
     std::string interpreter::parse_rpn(const std::string& infix)
     {
         const std::string ops = "-+/*^";
-        std::stringstream ss;
-        std::size_t parenthesis_counter = 0;
+        std::stringstream parsed_infix;
+        std::size_t parenthesis_counter = 0; // used for error management purpose
 
-        std::stack<int> s;
+        std::stack<int> operators;
 
         std::stringstream input(infix);
         std::string token;
@@ -63,29 +63,29 @@ namespace xeus_calc
                 continue;
             }
 
-            char c = token[0];
-            size_t idx = ops.find(c);
+            char c = token[0]; // study the first character of the token at each loop
+            size_t idx = ops.find(c); // Position in the string
 
             // check for operator
             if (idx != std::string::npos)
             {
-                while (!s.empty())
+                while (!operators.empty())
                 {
-                    int prec2 = s.top() / 2;
+                    int prec2 = operators.top() / 2; // Integer division to have the left to right priority when similar operators (* / or + -)
                     int prec1 = idx / 2;
-                    if (prec2 > prec1 || (prec2 == prec1 && c != '^'))
+                    if (prec2 > prec1 || (prec2 == prec1 && c != '^')) // higher or equivalent position value in the string -> higher priority, exception for ^
                     {
-                        ss << ops[s.top()] << ' ';
-                        s.pop();
+                        parsed_infix << ops[operators.top()] << ' ';
+                        operators.pop();
                     }
                     else break;
                 }
-                s.push(idx);
+                operators.push(idx); // after checking previous operator we can push in the stack
             }
             else if (c == '(')
             {
                 ++ parenthesis_counter;
-                s.push(-2); // -2 stands for '('
+                operators.push(-2); // -2 stands for '('
             }
             else if (c == ')')
             {
@@ -93,12 +93,12 @@ namespace xeus_calc
                 {
                     -- parenthesis_counter;
                     // until '(' on stack, pop operators.
-                    while (s.top() != -2)
+                    while (operators.top() != -2)
                     {
-                        ss << ops[s.top()] << ' ';
-                        s.pop();
+                        parsed_infix << ops[operators.top()] << ' ';
+                        operators.pop();
                     }
-                    s.pop();
+                    operators.pop();
                     continue;
                 }
                 else
@@ -108,19 +108,19 @@ namespace xeus_calc
             }
             else
             {
-                ss << token << ' ';
+                parsed_infix << token << ' '; // if the first value of the token is the number, we can assume that the whole token is composed of numbers and thus push it
             }
         }
 
-        while (!s.empty())
+        while (!operators.empty()) // push the remaining operators in the sting stream
         {
-            ss << ops[s.top()] << ' ';
-            s.pop();
+            parsed_infix << ops[operators.top()] << ' ';
+            operators.pop();
         }
         if (parenthesis_counter == 0)
         {
-            publish_stream("stdout", "RPN = " + ss.str());
-            return ss.str();
+            publish_stream("stdout", "RPN = " + parsed_infix.str());
+            return parsed_infix.str();
         }
         else
         {
@@ -131,48 +131,48 @@ namespace xeus_calc
     double interpreter::compute_rpn(const std::string &expr)
     {
         publish_stream("stdout", "\nInput\tOperation\tStack after\n");
-        std::istringstream iss(expr);
-        std::vector<double> stack;
+        std::istringstream input(expr);
+        std::vector<double> evaluation;
         std::string token;
-        while (iss >> token)
+        while (input >> token)
         {
             publish_stream("stdout", token + "\t");
             double tokenNum;
             if (std::istringstream(token) >> tokenNum)
             {
                 publish_stream("stdout","Push\t\t");
-                stack.push_back(tokenNum);
+                evaluation.push_back(tokenNum);
             }
             else
             {
-                if (stack.size() >= 2)
+                if (evaluation.size() >= 2) // error management, checks for missing operand
                 {
                     publish_stream("stdout", "Operate\t\t");
-                    double secondOperand = stack.back();
-                    stack.pop_back();
-                    double firstOperand = stack.back();
-                    stack.pop_back();
+                    double secondOperand = evaluation.back();
+                    evaluation.pop_back();
+                    double firstOperand = evaluation.back();
+                    evaluation.pop_back();
                     if (token == "*")
-                        stack.push_back(firstOperand * secondOperand);
+                        evaluation.push_back(firstOperand * secondOperand);
                     else if (token == "/")
-                        stack.push_back(firstOperand / secondOperand);
+                        evaluation.push_back(firstOperand / secondOperand);
                     else if (token == "-")
-                        stack.push_back(firstOperand - secondOperand);
+                        evaluation.push_back(firstOperand - secondOperand);
                     else if (token == "+")
-                        stack.push_back(firstOperand + secondOperand);
+                        evaluation.push_back(firstOperand + secondOperand);
                     else if (token == "^")
-                        stack.push_back(std::pow(firstOperand, secondOperand));
+                        evaluation.push_back(std::pow(firstOperand, secondOperand));
                 }
                 else
                 {
                     throw std::runtime_error("Syntax error:\nmissing operand");
                 }
             }
-            std::stringstream ss;
-            std::copy(stack.begin(), stack.end(), std::ostream_iterator<double>(ss, " "));
-            publish_stream("stdout",  ss.str()+ "\n");
+            std::stringstream result;
+            std::copy(evaluation.begin(), evaluation.end(), std::ostream_iterator<double>(result, " "));
+            publish_stream("stdout",  result.str()+ "\n");
         }
-        return stack.back();
+        return evaluation.back();
     }
 
     nl::json interpreter::execute_request_impl(int execution_counter,
