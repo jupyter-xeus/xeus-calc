@@ -14,7 +14,7 @@ namespace xeus_calc
     {
     }
 
-    std::string interpreter::formating_expr(const std::string& expr)
+    std::string formating_expr(const std::string& expr)
     {
         std::string operators = "-+/*^()";
         std::string spaced_expr;
@@ -38,7 +38,7 @@ namespace xeus_calc
             }
             else
             {
-                std::string s = "one of the characters presents an issue : ";
+                std::string s = "Syntax error :\none of the characters presents an issue : ";
                 s.push_back(itr);
                 throw std::runtime_error(s);
             }
@@ -46,7 +46,7 @@ namespace xeus_calc
         return spaced_expr;
     }
 
-    std::string interpreter::parse_rpn(const std::string& infix)
+    std::string parse_rpn(const std::string& infix, publish_type publish)
     {
         const std::string ops = "-+/*^";
         std::stringstream parsed_infix;
@@ -63,7 +63,7 @@ namespace xeus_calc
                 continue;
             }
 
-            char c = token[0]; // study the first character of the token at each loop
+            char c = token[0]; // checks the first character of the token at each loop
             size_t idx = ops.find(c); // Position in the string
 
             // check for operator
@@ -108,7 +108,8 @@ namespace xeus_calc
             }
             else
             {
-                parsed_infix << token << ' '; // if the first value of the token is the number, we can assume that the whole token is composed of numbers and thus push it
+                // if the first value of the token is the number, we can assume that the whole token is composed of numbers and thus push it
+                parsed_infix << token << ' ';
             }
         }
 
@@ -119,7 +120,7 @@ namespace xeus_calc
         }
         if (parenthesis_counter == 0)
         {
-            publish_stream("stdout", "RPN = " + parsed_infix.str());
+            publish("stdout", "RPN = " + parsed_infix.str());
             return parsed_infix.str();
         }
         else
@@ -128,26 +129,26 @@ namespace xeus_calc
         }
     }
 
-    double interpreter::compute_rpn(const std::string &expr)
+    double compute_rpn(const std::string &expr, publish_type publish)
     {
-        publish_stream("stdout", "\nInput\tOperation\tStack after\n");
+        publish("stdout", "\nInput\tOperation\tStack after\n");
         std::istringstream input(expr);
         std::vector<double> evaluation;
         std::string token;
         while (input >> token)
         {
-            publish_stream("stdout", token + "\t");
+            publish("stdout", token + "\t");
             double tokenNum;
             if (std::istringstream(token) >> tokenNum)
             {
-                publish_stream("stdout","Push\t\t");
+                publish("stdout","Push\t\t");
                 evaluation.push_back(tokenNum);
             }
             else
             {
-                if (evaluation.size() >= 2) // error management, checks for missing operand
+                if (evaluation.size() >= 2) // if less than 2 entries in the stack -> missing operand
                 {
-                    publish_stream("stdout", "Operate\t\t");
+                    publish("stdout", "Operate\t\t");
                     double secondOperand = evaluation.back();
                     evaluation.pop_back();
                     double firstOperand = evaluation.back();
@@ -165,12 +166,12 @@ namespace xeus_calc
                 }
                 else
                 {
-                    throw std::runtime_error("Syntax error:\nmissing operand");
+                    throw std::runtime_error("\nSyntax error:\nmissing operand");
                 }
             }
             std::stringstream result;
             std::copy(evaluation.begin(), evaluation.end(), std::ostream_iterator<double>(result, " "));
-            publish_stream("stdout",  result.str()+ "\n");
+            publish("stdout",  result.str()+ "\n");
         }
         return evaluation.back();
     }
@@ -194,10 +195,13 @@ namespace xeus_calc
 
         nl::json pub_data;
         std::string result = "Result = ";
+        auto publish = [this](const std::string& name, const std::string& text) {
+            this->publish_stream(name,text);
+        };
         try
         {
             std::string spaced_code = formating_expr(code);
-            result += std::to_string(compute_rpn(parse_rpn(spaced_code)));
+            result += std::to_string(compute_rpn(parse_rpn(spaced_code,publish), publish));
             pub_data["text/plain"] = result;
             publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
             nl::json jresult;

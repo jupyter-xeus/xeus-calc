@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.4.3)
 project(xeus-calc)
 
-set(EXECUTABLE_NAME xeus-calc)
-
 # Configuration
 # =============
 
@@ -42,15 +40,34 @@ endif()
 # Target and link
 # ===============
 
+# xeus-calc source directory
+set(XEUS_CALC_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 # xeus-calc source files
 set(XEUS_CALC_SRC
-    src/xeus_calc_interpreter.cpp
-    src/xeus_calc_interpreter.hpp
+    ${XEUS_CALC_SRC_DIR}/xeus_calc_interpreter.cpp
+    ${XEUS_CALC_SRC_DIR}/xeus_calc_interpreter.hpp
 )
 
-# My kernel executable
-add_executable(${EXECUTABLE_NAME} src/main.cpp ${XEUS_CALC_SRC} )
-target_link_libraries(${EXECUTABLE_NAME} PUBLIC xeus)
+add_library(xeus-calc SHARED ${XEUS_CALC_SRC})
+add_executable(xcalc src/main.cpp)
+target_link_libraries(xcalc PRIVATE xeus-calc)
+
+
+OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
+
+#Option for GTest
+if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
+    set(BUILD_TESTS ON)
+endif()
+
+
+# take into account the CMakeList in test
+if(BUILD_TESTS)
+    add_subdirectory(test)
+endif()
+
+target_link_libraries(xeus-calc PUBLIC xeus)
 
 if (APPLE)
     set_target_properties(${EXECUTABLE_NAME} PROPERTIES
