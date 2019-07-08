@@ -17,17 +17,12 @@ namespace xeus_calc
     public:
 
         interpreter() = default;
+
         virtual ~interpreter() = default;
 
     private:
 
         void configure_impl() override;
-
-        std::string formating_expr(const std::string& expr);
-
-        std::string parse_rpn(const std::string& infix);
-
-        double compute_rpn(const std::string &expr);
 
         nl::json execute_request_impl(int execution_counter,
                                       const std::string& code,
@@ -51,6 +46,15 @@ namespace xeus_calc
          void shutdown_request_impl() override;
 
     };
+
+    using publish_type = std::function<void(const std::string& name, const std::string& text)>;
+
+    std::string formating_expr(const std::string& expr);
+
+    std::string parse_rpn(const std::string& infix, publish_type publish = [](const std::string& /*name*/, const std::string& /*text*/){});
+
+    double compute_rpn(const std::string &expr, publish_type publish = [](const std::string& /*name*/, const std::string& /*text*/){});
+
 }
 
 #endif
