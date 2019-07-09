@@ -8,8 +8,8 @@ include(GNUInstallDirs)
 
 # We generate the kernel.json file, given the installation prefix and the executable name
 configure_file (
-    "${CMAKE_CURRENT_SOURCE_DIR}/share/jupyter/kernels/xeus-calc/kernel.json.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/share/jupyter/kernels/xeus-calc/kernel.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/share/jupyter/kernels/xcalc/kernel.json.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/share/jupyter/kernels/xcalc/kernel.json"
 )
 
 # Dependencies
@@ -53,6 +53,9 @@ add_library(xeus-calc SHARED ${XEUS_CALC_SRC})
 add_executable(xcalc src/main.cpp)
 target_link_libraries(xcalc PRIVATE xeus-calc)
 
+set_target_properties(xcalc xeus-calc PROPERTIES
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+)
 
 OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
 
@@ -87,8 +90,15 @@ set_target_properties(${EXECUTABLE_NAME} PROPERTIES
 # Installation
 # ============
 
-# Install xeus-calc
-install(TARGETS ${EXECUTABLE_NAME}
+# Install xeus-calc and xcalc
+install(TARGETS xeus-calc
+        EXPORT ${PROJECT_NAME}-targets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xeus-calc)
+
+install(TARGETS xcalc
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # Configuration and data directories for jupyter and xeus_calc
