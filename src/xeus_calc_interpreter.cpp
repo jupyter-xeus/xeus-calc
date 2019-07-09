@@ -250,7 +250,7 @@ namespace xeus_calc
     nl::json interpreter::kernel_info_request_impl()
     {
         nl::json result;
-        result["implementation"] = "xeus-calc";
+        result["implementation"] = "xcalc";
         result["implementation_version"] = "0.1.0";
         std::string banner = ""
         " **     ** ******** **     **  ********         ******      **     **         ****** \n"
