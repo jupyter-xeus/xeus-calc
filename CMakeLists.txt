@@ -1,6 +1,22 @@
 cmake_minimum_required(VERSION 3.4.3)
 project(xeus-calc)
 
+set(XEUS_CALC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# Versionning
+# ===========
+
+file(STRINGS "${XEUS_CALC_INCLUDE_DIR}/xeus-calc/xeus_calc_config.hpp" xcalc_version_defines
+     REGEX "#define XCALC_VERSION_(MAJOR|MINOR|PATCH)")
+foreach(ver ${xcalc_version_defines})
+    if(ver MATCHES "#define XCALC_VERSION_(MAJOR|MINOR|PATCH) +([^ ]+)$")
+        set(XCALC_VERSION_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}" CACHE INTERNAL "")
+    endif()
+endforeach()
+set(${PROJECT_NAME}_VERSION
+${XCALC_VERSION_MAJOR}.${XPYT_VERSION_MINOR}.${XPYT_VERSION_PATCH})
+message(STATUS "Building xeus-calc v${${PROJECT_NAME}_VERSION}")
+
 # Configuration
 # =============
 
@@ -46,10 +62,17 @@ set(XEUS_CALC_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 # xeus-calc source files
 set(XEUS_CALC_SRC
     ${XEUS_CALC_SRC_DIR}/xeus_calc_interpreter.cpp
-    ${XEUS_CALC_SRC_DIR}/xeus_calc_interpreter.hpp
 )
 
-add_library(xeus-calc SHARED ${XEUS_CALC_SRC})
+set(XEUS_CALC_HEADERS
+    include/xeus-calc/xeus_calc_interpreter.hpp
+    include/xeus-calc/xeus_calc_config.hpp
+)
+
+# xeus-calc is the target for the library
+add_library(xeus-calc SHARED ${XEUS_CALC_SRC} ${XEUS_CALC_HEADERS})
+
+# xcalc is the target for the kernel executable
 add_executable(xcalc src/main.cpp)
 target_link_libraries(xcalc PRIVATE xeus-calc)
 
@@ -86,6 +109,21 @@ endif()
 set_target_properties(xcalc PROPERTIES
     INSTALL_RPATH_USE_LINK_PATH TRUE
 )
+
+target_include_directories(xeus-calc
+                           PUBLIC
+                           ${XCALC_INCLUDE_DIRS}
+                           $<BUILD_INTERFACE:${XEUS_CALC_INCLUDE_DIR}>
+                           $<INSTALL_INTERFACE:include>)
+
+set_target_properties(xeus-calc PROPERTIES
+                      PUBLIC_HEADER "${XEUS_CALC_HEADERS}"
+                      COMPILE_DEFINITIONS "XEUS_CALC_EXPORTS"
+                      PREFIX ""
+                      VERSION ${${PROJECT_NAME}_VERSION}
+                      SOVERSION ${XCALC_VERSION_MAJOR}
+OUTPUT_NAME "libxeus-calc")
+
 
 # Installation
 # ============

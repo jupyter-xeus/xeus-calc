@@ -5,13 +5,13 @@
 
 #include "nlohmann/json.hpp"
 
-using xeus::xinterpreter;
+#include "xeus_calc_config.hpp"
 
 namespace nl = nlohmann;
 
 namespace xeus_calc
 {
-    class XEUS_CALC_API interpreter : public xinterpreter
+    class XEUS_CALC_API interpreter : public xeus::xinterpreter
     {
 
     public:
