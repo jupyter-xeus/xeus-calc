@@ -14,7 +14,26 @@ else()
     message(STATUS "Tests build type is ${CMAKE_BUILD_TYPE}")
 endif()
 
+
+include(CheckCXXCompilerFlag)
+
 string(TOUPPER "${CMAKE_BUILD_TYPE}" U_CMAKE_BUILD_TYPE)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES Clang OR CMAKE_CXX_COMPILER_ID MATCHES GNU OR CMAKE_CXX_COMPILER_ID MATCHES Intel)
+    add_compile_options(-Wunused-parameter -Wextra -Wreorder -Wconversion -Wsign-conversion)
+
+    CHECK_CXX_COMPILER_FLAG(-march=native HAS_MARCH_NATIVE)
+    if (HAS_MARCH_NATIVE)
+        add_compile_options(-march=native)
+    endif()
+endif()
+
+
+if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    add_compile_options(/EHsc /MP /bigobj)
+    set(CMAKE_EXE_LINKER_FLAGS /MANIFEST:NO)
+endif()
+
 
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     if(DOWNLOAD_GTEST)
@@ -48,6 +67,10 @@ else()
     find_package(GTest REQUIRED)
 endif()
 
+find_package(Threads)
+
+include_directories(${GTEST_INCLUDE_DIRS} SYSTEM)
+
 
 set(COMMON_BASE
     main.cpp
@@ -57,10 +80,32 @@ set(XEUS_CALC_TESTS
     test_calculator.cpp
 )
 
-add_executable(test_xeus_calc ${COMMON_BASE} ${XEUS_CALC_TESTS})
+add_executable(test_xeus_calc  ${XEUS_CALC_TESTS})
 
-target_include_directories(test_xeus_calc PRIVATE ${XEUS_CALC_SRC_DIR})
+if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
+    add_dependencies(test_xeus_calc gtest_main)
+endif()
+
+if (APPLE)
+    set_target_properties(test_xeus_calc PROPERTIES
+        MACOSX_RPATH ON
+    )
+else()
+    set_target_properties(test_xeus_calc PROPERTIES
+        BUILD_WITH_INSTALL_RPATH 1
+        SKIP_BUILD_RPATH FALSE
+    )
+endif()
+
+set_target_properties(test_xeus_calc PROPERTIES
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+)
+
+
+include_directories(${XCALC_INCLUDE_DIRS})
 target_link_libraries(test_xeus_calc PRIVATE xeus-calc xeus ${GTEST_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_compile_definitions(test_xeus_calc PRIVATE XEUS_CALC_HOME="${XCALC_PREFIX}")
+target_include_directories(test_xeus_calc PRIVATE ${XEUS_CALC_SRC_DIR})
 
 add_custom_target(
     xtest
