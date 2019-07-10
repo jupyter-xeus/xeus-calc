@@ -73,17 +73,17 @@ endif()
 target_link_libraries(xeus-calc PUBLIC xeus)
 
 if (APPLE)
-    set_target_properties(${EXECUTABLE_NAME} PROPERTIES
+    set_target_properties(xcalc PROPERTIES
         MACOSX_RPATH ON
     )
 else()
-    set_target_properties(${EXECUTABLE_NAME} PROPERTIES
+    set_target_properties(xcalc PROPERTIES
         BUILD_WITH_INSTALL_RPATH 1
         SKIP_BUILD_RPATH FALSE
     )
 endif()
 
-set_target_properties(${EXECUTABLE_NAME} PROPERTIES
+set_target_properties(xcalc PROPERTIES
     INSTALL_RPATH_USE_LINK_PATH TRUE
 )
 
