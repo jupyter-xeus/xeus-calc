@@ -43,6 +43,8 @@ find_package(cppzmq ${cppzmq_REQUIRED_VERSION} REQUIRED)
 
 include(CheckCXXCompilerFlag)
 
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     CHECK_CXX_COMPILER_FLAG("-std=c++14" HAS_CPP14_FLAG)
 
@@ -72,9 +74,24 @@ set(XEUS_CALC_HEADERS
 # xeus-calc is the target for the library
 add_library(xeus-calc SHARED ${XEUS_CALC_SRC} ${XEUS_CALC_HEADERS})
 
+
 # xcalc is the target for the kernel executable
 add_executable(xcalc src/main.cpp)
+set_target_properties(xcalc PROPERTIES ENABLE_EXPORTS 1)
 target_link_libraries(xcalc PRIVATE xeus-calc)
+target_compile_definitions(xcalc PRIVATE XEUS_CALC_HOME="${XCALC_PREFIX}")
+
+if (APPLE)
+    set_target_properties(xcalc PROPERTIES
+        MACOSX_RPATH ON
+    )
+else()
+    set_target_properties(xcalc PROPERTIES
+        BUILD_WITH_INSTALL_RPATH 1
+        SKIP_BUILD_RPATH FALSE
+    )
+endif()
+
 
 set_target_properties(xcalc xeus-calc PROPERTIES
     INSTALL_RPATH_USE_LINK_PATH TRUE
@@ -87,24 +104,8 @@ if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     set(BUILD_TESTS ON)
 endif()
 
-
-# take into account the CMakeList in test
-if(BUILD_TESTS)
-    add_subdirectory(test)
-endif()
-
 target_link_libraries(xeus-calc PUBLIC xeus)
 
-if (APPLE)
-    set_target_properties(xcalc PROPERTIES
-        MACOSX_RPATH ON
-    )
-else()
-    set_target_properties(xcalc PROPERTIES
-        BUILD_WITH_INSTALL_RPATH 1
-        SKIP_BUILD_RPATH FALSE
-    )
-endif()
 
 set_target_properties(xcalc PROPERTIES
     INSTALL_RPATH_USE_LINK_PATH TRUE
@@ -124,6 +125,21 @@ set_target_properties(xeus-calc PROPERTIES
                       SOVERSION ${XCALC_VERSION_MAJOR}
 OUTPUT_NAME "libxeus-calc")
 
+
+## Test ##
+# take into account the CMakeList in test
+
+OPTION(BUILD_TESTS "xeus-calc test suite" OFF)
+OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
+
+if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
+    set(BUILD_TESTS ON)
+endif()
+
+
+if(BUILD_TESTS)
+    add_subdirectory(test)
+endif()
 
 # Installation
 # ============
@@ -147,3 +163,11 @@ set(XEUS_CALCSPEC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/share/jupyter/kernels)
 install(DIRECTORY ${XEUS_CALCSPEC_DIR}
         DESTINATION ${XJUPYTER_DATA_DIR}
         PATTERN "*.in" EXCLUDE)
+
+
+# Extra path for installing Jupyter kernelspec
+if (XEXTRA_JUPYTER_DATA_DIR)
+    install(DIRECTORY ${XEUS_CALCSPEC_DIR}
+            DESTINATION ${XEXTRA_JUPYTER_DATA_DIR}
+            PATTERN "*.in" EXCLUDE)
+endif(XEXTRA_JUPYTER_DATA_DIR)
