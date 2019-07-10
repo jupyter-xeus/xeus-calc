@@ -4,7 +4,7 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     project(xeus_calc-test)
 
     find_package(xeus REQUIRED CONFIG)
-    set(XTENSOR_INCLUDE_DIR ${xtensor_INCLUDE_DIRS})
+    set(XEUS_CALC_INCLUDE_DIR ${xeus_calc_INCLUDE_DIRS})
 endif ()
 
 if(NOT CMAKE_BUILD_TYPE)

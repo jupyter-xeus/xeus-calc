@@ -6,7 +6,7 @@
 
 #include "xeus/xinterpreter.hpp"
 
-#include "xeus_calc_interpreter.hpp"
+#include "xeus-calc/xeus_calc_interpreter.hpp"
 
 namespace xeus_calc
 {

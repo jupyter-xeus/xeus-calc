@@ -3,7 +3,7 @@
 
 #include "gtest/gtest.h"
 
-#include "xeus_calc_interpreter.hpp"
+#include "xeus-calc/xeus_calc_interpreter.hpp"
 
 
 namespace xeus_calc

@@ -3,7 +3,7 @@
 #include "xeus/xkernel.hpp"
 #include "xeus/xkernel_configuration.hpp"
 
-#include "xeus_calc_interpreter.hpp"
+#include "xeus-calc/xeus_calc_interpreter.hpp"
 
 int main(int argc, char* argv[])
 {
