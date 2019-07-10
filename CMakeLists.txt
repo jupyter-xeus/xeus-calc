@@ -109,3 +109,11 @@ set(XEUS_CALCSPEC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/share/jupyter/kernels)
 install(DIRECTORY ${XEUS_CALCSPEC_DIR}
         DESTINATION ${XJUPYTER_DATA_DIR}
         PATTERN "*.in" EXCLUDE)
+
+
+# Extra path for installing Jupyter kernelspec
+if (XEXTRA_JUPYTER_DATA_DIR)
+    install(DIRECTORY ${XEUS_CALCSPEC_DIR}
+            DESTINATION ${XEXTRA_JUPYTER_DATA_DIR}
+            PATTERN "*.in" EXCLUDE)
+endif(XEXTRA_JUPYTER_DATA_DIR)
