@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 
     // Create interpreter instance
     using interpreter_ptr = std::unique_ptr<xeus_calc::interpreter>;
-    interpreter_ptr interpreter = interpreter_ptr(new xeus_calc::interpreter());
+    interpreter_ptr interpreter = std::make_unique<xeus_calc::interpreter>();
 
     // Create kernel instance and start it
     xeus::xkernel kernel(config, xeus::get_user_name(), std::move(interpreter));
