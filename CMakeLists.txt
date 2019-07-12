@@ -1,6 +1,22 @@
 cmake_minimum_required(VERSION 3.4.3)
 project(xeus-calc)
 
+set(XEUS_CALC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# Versionning
+# ===========
+
+file(STRINGS "${XEUS_CALC_INCLUDE_DIR}/xeus-calc/xeus_calc_config.hpp" xcalc_version_defines
+     REGEX "#define XCALC_VERSION_(MAJOR|MINOR|PATCH)")
+foreach(ver ${xcalc_version_defines})
+    if(ver MATCHES "#define XCALC_VERSION_(MAJOR|MINOR|PATCH) +([^ ]+)$")
+        set(XCALC_VERSION_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}" CACHE INTERNAL "")
+    endif()
+endforeach()
+set(${PROJECT_NAME}_VERSION
+${XCALC_VERSION_MAJOR}.${XPYT_VERSION_MINOR}.${XPYT_VERSION_PATCH})
+message(STATUS "Building xeus-calc v${${PROJECT_NAME}_VERSION}")
+
 # Configuration
 # =============
 
@@ -27,6 +43,8 @@ find_package(cppzmq ${cppzmq_REQUIRED_VERSION} REQUIRED)
 
 include(CheckCXXCompilerFlag)
 
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     CHECK_CXX_COMPILER_FLAG("-std=c++14" HAS_CPP14_FLAG)
 
@@ -46,31 +64,22 @@ set(XEUS_CALC_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 # xeus-calc source files
 set(XEUS_CALC_SRC
     ${XEUS_CALC_SRC_DIR}/xeus_calc_interpreter.cpp
-    ${XEUS_CALC_SRC_DIR}/xeus_calc_interpreter.hpp
 )
 
-add_library(xeus-calc SHARED ${XEUS_CALC_SRC})
+set(XEUS_CALC_HEADERS
+    include/xeus-calc/xeus_calc_interpreter.hpp
+    include/xeus-calc/xeus_calc_config.hpp
+)
+
+# xeus-calc is the target for the library
+add_library(xeus-calc SHARED ${XEUS_CALC_SRC} ${XEUS_CALC_HEADERS})
+
+
+# xcalc is the target for the kernel executable
 add_executable(xcalc src/main.cpp)
+set_target_properties(xcalc PROPERTIES ENABLE_EXPORTS 1)
 target_link_libraries(xcalc PRIVATE xeus-calc)
-
-set_target_properties(xcalc xeus-calc PROPERTIES
-    INSTALL_RPATH_USE_LINK_PATH TRUE
-)
-
-OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
-
-#Option for GTest
-if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
-    set(BUILD_TESTS ON)
-endif()
-
-
-# take into account the CMakeList in test
-if(BUILD_TESTS)
-    add_subdirectory(test)
-endif()
-
-target_link_libraries(xeus-calc PUBLIC xeus)
+target_compile_definitions(xcalc PRIVATE XEUS_CALC_HOME="${XCALC_PREFIX}")
 
 if (APPLE)
     set_target_properties(xcalc PROPERTIES
@@ -83,9 +92,54 @@ else()
     )
 endif()
 
+
+set_target_properties(xcalc xeus-calc PROPERTIES
+    INSTALL_RPATH_USE_LINK_PATH TRUE
+)
+
+OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
+
+#Option for GTest
+if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
+    set(BUILD_TESTS ON)
+endif()
+
+target_link_libraries(xeus-calc PUBLIC xeus)
+
+
 set_target_properties(xcalc PROPERTIES
     INSTALL_RPATH_USE_LINK_PATH TRUE
 )
+
+target_include_directories(xeus-calc
+                           PUBLIC
+                           ${XCALC_INCLUDE_DIRS}
+                           $<BUILD_INTERFACE:${XEUS_CALC_INCLUDE_DIR}>
+                           $<INSTALL_INTERFACE:include>)
+
+set_target_properties(xeus-calc PROPERTIES
+                      PUBLIC_HEADER "${XEUS_CALC_HEADERS}"
+                      COMPILE_DEFINITIONS "XEUS_CALC_EXPORTS"
+                      PREFIX ""
+                      VERSION ${${PROJECT_NAME}_VERSION}
+                      SOVERSION ${XCALC_VERSION_MAJOR}
+OUTPUT_NAME "libxeus-calc")
+
+
+## Test ##
+# take into account the CMakeList in test
+
+OPTION(BUILD_TESTS "xeus-calc test suite" OFF)
+OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
+
+if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
+    set(BUILD_TESTS ON)
+endif()
+
+
+if(BUILD_TESTS)
+    add_subdirectory(test)
+endif()
 
 # Installation
 # ============
@@ -109,3 +163,11 @@ set(XEUS_CALCSPEC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/share/jupyter/kernels)
 install(DIRECTORY ${XEUS_CALCSPEC_DIR}
         DESTINATION ${XJUPYTER_DATA_DIR}
         PATTERN "*.in" EXCLUDE)
+
+
+# Extra path for installing Jupyter kernelspec
+if (XEXTRA_JUPYTER_DATA_DIR)
+    install(DIRECTORY ${XEUS_CALCSPEC_DIR}
+            DESTINATION ${XEXTRA_JUPYTER_DATA_DIR}
+            PATTERN "*.in" EXCLUDE)
+endif(XEXTRA_JUPYTER_DATA_DIR)

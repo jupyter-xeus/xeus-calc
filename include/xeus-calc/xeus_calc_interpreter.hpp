@@ -1,17 +1,17 @@
-#ifndef CUSTOM_INTERPRETER
-#define CUSTOM_INTERPRETER
+#ifndef XEUS_CALC_INTERPRETER_HPP
+#define XEUS_CALC_INTERPRETER_HPP
 
 #include "xeus/xinterpreter.hpp"
 
 #include "nlohmann/json.hpp"
 
-using xeus::xinterpreter;
+#include "xeus_calc_config.hpp"
 
 namespace nl = nlohmann;
 
 namespace xeus_calc
 {
-    class interpreter : public xinterpreter
+    class XEUS_CALC_API interpreter : public xeus::xinterpreter
     {
 
     public:
@@ -43,17 +43,17 @@ namespace xeus_calc
 
         nl::json kernel_info_request_impl() override;
 
-         void shutdown_request_impl() override;
+        void shutdown_request_impl() override;
 
     };
 
     using publish_type = std::function<void(const std::string& name, const std::string& text)>;
 
-    std::string formating_expr(const std::string& expr);
+    XEUS_CALC_API std::string formating_expr(const std::string& expr);
 
-    std::string parse_rpn(const std::string& infix, publish_type publish = [](const std::string& /*name*/, const std::string& /*text*/){});
+    XEUS_CALC_API std::string parse_rpn(const std::string& infix, publish_type publish = [](const std::string& /*name*/, const std::string& /*text*/){});
 
-    double compute_rpn(const std::string &expr, publish_type publish = [](const std::string& /*name*/, const std::string& /*text*/){});
+    XEUS_CALC_API double compute_rpn(const std::string &expr, publish_type publish = [](const std::string& /*name*/, const std::string& /*text*/){});
 
 }
 
