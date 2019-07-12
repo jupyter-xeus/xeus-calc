@@ -53,6 +53,10 @@ namespace xeus_calc
 
     XEUS_CALC_API std::string parse_rpn(const std::string& infix, publish_type publish = [](const std::string& /*name*/, const std::string& /*text*/){});
 
+     TokenQueue_t toRPN(const char* expr,
+                        std::map<std::string, double>* vars,
+                        std::map<std::string, int> opPrecedence)
+
     XEUS_CALC_API double compute_rpn(const std::string &expr, publish_type publish = [](const std::string& /*name*/, const std::string& /*text*/){});
 
 }

@@ -46,87 +46,57 @@ namespace xeus_calc
         return spaced_expr;
     }
 
-    std::string parse_rpn(const std::string& infix, publish_type publish)
+    std::string parse_rpn(std::string expression)
     {
-        const std::string ops = "-+/*^";
-        std::stringstream parsed_infix;
-        std::size_t parenthesis_counter = 0; // used for error management purpose
-
-        std::stack<int> operators;
-
-        std::stringstream input(infix);
+        std::istringstream infix(expression);
         std::string token;
-        while (std::getline(input, token, ' '))
+        std::string output;
+        std::string operators = "+-*/^";
+        std::stack<double> operator_stack;
+        while (infix >> token)
         {
-            if (token.empty())
+            char first_term = token[0];
+            if (isdigit(first_term))
             {
-                continue;
+                std::cout << "number : " << token.str() << std::endl;
+                output += token.str();
             }
+            else if (operators.find(first_term) != std::string::npos)
+            {
+                while(!operators.empty)
+                {
 
-            char c = token[0]; // checks the first character of the token at each loop
-            size_t idx = ops.find(c); // Position in the string
+                }
+            }
+            else if (first_term == '(')
+            {
 
-            // check for operator
-            if (idx != std::string::npos)
-            {
-                while (!operators.empty())
-                {
-                    int prec2 = operators.top() / 2; // Integer division to have the left to right priority when similar operators (* / or + -)
-                    int prec1 = idx / 2;
-                    if (prec2 > prec1 || (prec2 == prec1 && c != '^')) // higher or equivalent position value in the string -> higher priority, exception for ^
-                    {
-                        parsed_infix << ops[operators.top()] << ' ';
-                        operators.pop();
-                    }
-                    else break;
-                }
-                operators.push(idx); // after checking previous operator we can push in the stack
             }
-            else if (c == '(')
+            else if (first_term == ')')
             {
-                ++ parenthesis_counter;
-                operators.push(-2); // -2 stands for '('
-            }
-            else if (c == ')')
-            {
-                if (parenthesis_counter > 0)
-                {
-                    -- parenthesis_counter;
-                    // until '(' on stack, pop operators.
-                    while (operators.top() != -2)
-                    {
-                        parsed_infix << ops[operators.top()] << ' ';
-                        operators.pop();
-                    }
-                    operators.pop();
-                    continue;
-                }
-                else
-                {
-                    throw std::runtime_error("Syntax error :\nmissing or misplaced parenthesis");
-                }
+
             }
             else
             {
-                // if the first value of the token is the number, we can assume that the whole token is composed of numbers and thus push it
-                parsed_infix << token << ' ';
+
             }
         }
+    }
 
-        while (!operators.empty()) // push the remaining operators in the sting stream
-        {
-            parsed_infix << ops[operators.top()] << ' ';
-            operators.pop();
-        }
-        if (parenthesis_counter == 0)
-        {
-            publish("stdout", "RPN = " + parsed_infix.str());
-            return parsed_infix.str();
-        }
-        else
-        {
-            throw std::runtime_error("Syntax error :\nmissing or misplaced parenthesis");
-        }
+    using operators_map_type = std::map<std::string, std::function<double(double first_argument, double second_argument)>>;
+
+    operators_map_type build_operators_map()
+    {
+        operators_map_type operators_map;
+        operators_map["+"] = std::plus<double>();
+        operators_map["-"] = std::minus<double>();
+        operators_map["*"] = std::multiplies<double>();
+        operators_map["/"] = std::divides<double>();
+        operators_map["^"] = [](double first_argument, double second_argument) {
+            return std::pow(first_argument, second_argument);
+        };
+
+        return operators_map;
     }
 
     double compute_rpn(const std::string &expr, publish_type publish)
@@ -135,34 +105,36 @@ namespace xeus_calc
         std::istringstream input(expr);
         std::vector<double> evaluation;
         std::string token;
+        // the map is initialized only once
+        static operators_map_type operators_map = build_operators_map();
         while (input >> token)
         {
             publish("stdout", token + "\t");
-            double tokenNum;
-            if (std::istringstream(token) >> tokenNum)
+            double token_num;
+            if (std::istringstream(token) >> token_num)
             {
                 publish("stdout","Push\t\t");
-                evaluation.push_back(tokenNum);
+                evaluation.push_back(token_num);
             }
             else
             {
-                if (evaluation.size() >= 2) // if less than 2 entries in the stack -> missing operand
+                // if less than 2 entries in the stack -> missing operand
+                if (evaluation.size() >= 2)
                 {
                     publish("stdout", "Operate\t\t");
-                    double secondOperand = evaluation.back();
-                    evaluation.pop_back();
-                    double firstOperand = evaluation.back();
-                    evaluation.pop_back();
-                    if (token == "*")
-                        evaluation.push_back(firstOperand * secondOperand);
-                    else if (token == "/")
-                        evaluation.push_back(firstOperand / secondOperand);
-                    else if (token == "-")
-                        evaluation.push_back(firstOperand - secondOperand);
-                    else if (token == "+")
-                        evaluation.push_back(firstOperand + secondOperand);
-                    else if (token == "^")
-                        evaluation.push_back(std::pow(firstOperand, secondOperand));
+                    auto it = operators_map.find(token);
+                    if (it != operators_map.end())
+                    {
+                        double second_argument = evaluation.back();
+                        evaluation.pop_back();
+                        double first_argument = evaluation.back();
+                        evaluation.pop_back();
+                        evaluation.push_back((it->second)(first_argument, second_argument));
+                    }
+                    else
+                    {
+                        throw std::runtime_error("\nSyntax error:\noperator or function not recognized");
+                    }
                 }
                 else
                 {
