@@ -18,6 +18,7 @@ namespace xeus_calc
     {
         std::string operators = "-+/*^()";
         std::string spaced_expression;
+        std::string function;
         for (char itr : expression)
         {
             std::istringstream num(std::to_string(itr));
@@ -32,6 +33,18 @@ namespace xeus_calc
             {
                 spaced_expression += itr;
             }
+            //possible implementation for functions using the operators map defined below to check for the function's existence
+            /*else if (isalpha(itr))
+            {
+
+                function += itr;
+                static operators_map_type operators_map = build_operators_map();
+                auto it = operators_map.find(token);
+                if (it != operators_map.end())
+                {
+                    function = "";
+                }
+            }*/
             else if (itr == ' ')
             {
                 continue;
