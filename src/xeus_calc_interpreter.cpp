@@ -14,23 +14,23 @@ namespace xeus_calc
     {
     }
 
-    std::string formating_expr(const std::string& expr)
+    std::string formating_expr(const std::string& expression)
     {
         std::string operators = "-+/*^()";
-        std::string spaced_expr;
-        for (char itr : expr)
+        std::string spaced_expression;
+        for (char itr : expression)
         {
             std::istringstream num(std::to_string(itr));
             size_t op = operators.find(itr);
             if(op != std::string::npos)
             {
-                spaced_expr += ' ';
-                spaced_expr += itr;
-                spaced_expr += ' ';
+                spaced_expression += ' ';
+                spaced_expression += itr;
+                spaced_expression += ' ';
             }
-            else if (isdigit(itr) || isdigit(spaced_expr.back()) && itr == '.')
+            else if (isdigit(itr) || isdigit(spaced_expression.back()) && itr == '.')
             {
-                spaced_expr += itr;
+                spaced_expression += itr;
             }
             else if (itr == ' ')
             {
@@ -43,44 +43,97 @@ namespace xeus_calc
                 throw std::runtime_error(s);
             }
         }
-        return spaced_expr;
+        return spaced_expression;
     }
 
-    std::string parse_rpn(std::string expression)
-    {
-        std::istringstream infix(expression);
-        std::string token;
-        std::string output;
-        std::string operators = "+-*/^";
-        std::stack<double> operator_stack;
-        while (infix >> token)
-        {
-            char first_term = token[0];
-            if (isdigit(first_term))
-            {
-                std::cout << "number : " << token.str() << std::endl;
-                output += token.str();
-            }
-            else if (operators.find(first_term) != std::string::npos)
-            {
-                while(!operators.empty)
-                {
+    using precedence_map_type = std::map<std::string, int>;
 
+    precedence_map_type build_precedence_map()
+    {
+        precedence_map_type precedence_map;
+        precedence_map["+"] = 0;
+        precedence_map["-"] = 0;
+        precedence_map["*"] = 10;
+        precedence_map["/"] = 10;
+        precedence_map["^"] = 20;
+
+        return precedence_map;
+    }
+
+
+    std::string parse_rpn(const std::string& formated_expression, publish_type publish)
+    {
+        std::stringstream input(formated_expression);
+        std::string token;
+        std::stringstream output_queue;
+        std::stack<std::string> operators_stack;
+        static precedence_map_type precedence_map = build_precedence_map();
+        int parenthesis_counter = 0;
+        while (input >> token)
+        {
+            char first_token_char = token[0];
+            auto it = precedence_map.find(token);
+            if (isdigit(first_token_char))
+            {
+                output_queue << token << ' ';
+            }
+            else if (it != precedence_map.end())
+            {
+
+                while(!operators_stack.empty() && operators_stack.top() != "(")
+                {
+                    auto stack_it = precedence_map.find(operators_stack.top());
+                    if(stack_it->second >= it->second)
+                    {
+                        output_queue << operators_stack.top() << ' ';
+                        operators_stack.pop();
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                operators_stack.push(token);
+            }
+            else if (first_token_char == '(')
+            {
+                operators_stack.push(token);
+                ++ parenthesis_counter;
+            }
+            else if (first_token_char == ')')
+            {
+                while(!operators_stack.empty() && operators_stack.top() != "(")
+                {
+                    output_queue << operators_stack.top() << ' ';
+                    operators_stack.pop();
+                }
+                if (operators_stack.empty())
+                {
+                    throw std::runtime_error("Syntax error:\nmissing or misplaced parenthesis");
+                }
+                else
+                {
+                    -- parenthesis_counter;
+                    operators_stack.pop();
                 }
             }
-            else if (first_term == '(')
+        }
+        while (!operators_stack.empty())
+        {
+            if (parenthesis_counter == 0)
             {
-
-            }
-            else if (first_term == ')')
-            {
-
+                output_queue << operators_stack.top() << ' ';
+                operators_stack.pop();
             }
             else
             {
-
+                 throw std::runtime_error("Syntax error:\nmissing or misplaced parenthesis");
             }
         }
+        std::string result = "RPN = ";
+        result += output_queue.str();
+        publish("stdout", result);
+        return output_queue.str();
     }
 
     using operators_map_type = std::map<std::string, std::function<double(double first_argument, double second_argument)>>;
@@ -99,10 +152,10 @@ namespace xeus_calc
         return operators_map;
     }
 
-    double compute_rpn(const std::string &expr, publish_type publish)
+    double compute_rpn(const std::string& rpn_expression, publish_type publish)
     {
         publish("stdout", "\nInput\tOperation\tStack after\n");
-        std::istringstream input(expr);
+        std::istringstream input(rpn_expression);
         std::vector<double> evaluation;
         std::string token;
         // the map is initialized only once
