@@ -29,12 +29,12 @@ namespace xeus_calc
                 spaced_expression += itr;
                 spaced_expression += ' ';
             }
-            else if (isdigit(itr) || isdigit(spaced_expression.back()) && itr == '.')
+            else if (std::isdigit(itr) || std::isdigit(spaced_expression.back()) && itr == '.')
             {
                 spaced_expression += itr;
             }
             //possible implementation for functions using the operators map defined below to check for the function's existence
-            /*else if (isalpha(itr))
+            /*else if (std::isalpha(itr))
             {
 
                 function += itr;
@@ -86,7 +86,7 @@ namespace xeus_calc
         {
             char first_token_char = token[0];
             auto it = precedence_map.find(token);
-            if (isdigit(first_token_char))
+            if (std::isdigit(first_token_char))
             {
                 output_queue << token << ' ';
             }
