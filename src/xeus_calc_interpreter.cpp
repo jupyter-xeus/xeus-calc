@@ -32,7 +32,7 @@ namespace xeus_calc
         {
             std::istringstream num(std::to_string(itr));
             size_t op = operators.find(itr);
-            if(op != std::string::npos)
+            if (op != std::string::npos)
             {
                 spaced_expression += ' ';
                 spaced_expression += itr;
@@ -42,7 +42,8 @@ namespace xeus_calc
             {
                 spaced_expression += itr;
             }
-            //possible implementation for functions using the operators map defined below to check for the function's existence
+            // possible implementation for functions using the operators map defined below to check
+            // for the function's existence
             /*else if (std::isalpha(itr))
             {
 
@@ -82,7 +83,6 @@ namespace xeus_calc
         return precedence_map;
     }
 
-
     std::string parse_rpn(const std::string& formated_expression, publish_type publish)
     {
         std::stringstream input(formated_expression);
@@ -101,11 +101,10 @@ namespace xeus_calc
             }
             else if (it != precedence_map.end())
             {
-
-                while(!operators_stack.empty() && operators_stack.top() != "(")
+                while (!operators_stack.empty() && operators_stack.top() != "(")
                 {
                     auto stack_it = precedence_map.find(operators_stack.top());
-                    if(stack_it->second >= it->second)
+                    if (stack_it->second >= it->second)
                     {
                         output_queue << operators_stack.top() << ' ';
                         operators_stack.pop();
@@ -120,11 +119,11 @@ namespace xeus_calc
             else if (first_token_char == '(')
             {
                 operators_stack.push(token);
-                ++ parenthesis_counter;
+                ++parenthesis_counter;
             }
             else if (first_token_char == ')')
             {
-                while(!operators_stack.empty() && operators_stack.top() != "(")
+                while (!operators_stack.empty() && operators_stack.top() != "(")
                 {
                     output_queue << operators_stack.top() << ' ';
                     operators_stack.pop();
@@ -135,7 +134,7 @@ namespace xeus_calc
                 }
                 else
                 {
-                    -- parenthesis_counter;
+                    --parenthesis_counter;
                     operators_stack.pop();
                 }
             }
@@ -149,7 +148,7 @@ namespace xeus_calc
             }
             else
             {
-                 throw std::runtime_error("Syntax error:\nmissing or misplaced parenthesis");
+                throw std::runtime_error("Syntax error:\nmissing or misplaced parenthesis");
             }
         }
         std::string result = "RPN = ";
@@ -188,7 +187,7 @@ namespace xeus_calc
             double token_num;
             if (std::istringstream(token) >> token_num)
             {
-                publish("stdout","Push\t\t");
+                publish("stdout", "Push\t\t");
                 evaluation.push_back(token_num);
             }
             else
@@ -218,7 +217,7 @@ namespace xeus_calc
             }
             std::stringstream result;
             std::copy(evaluation.begin(), evaluation.end(), std::ostream_iterator<double>(result, " "));
-            publish("stdout",  result.str()+ "\n");
+            publish("stdout", result.str() + "\n");
         }
         return evaluation.back();
     }
@@ -243,12 +242,12 @@ namespace xeus_calc
         nl::json pub_data;
         std::string result = "Result = ";
         auto publish = [this](const std::string& name, const std::string& text) {
-            this->publish_stream(name,text);
+            this->publish_stream(name, text);
         };
         try
         {
             std::string spaced_code = formating_expr(code);
-            result += std::to_string(compute_rpn(parse_rpn(spaced_code,publish), publish));
+            result += std::to_string(compute_rpn(parse_rpn(spaced_code, publish), publish));
             pub_data["text/plain"] = result;
             publish_execution_result(execution_counter, std::move(pub_data), nl::json::object());
             nl::json jresult;
@@ -268,24 +267,23 @@ namespace xeus_calc
         // failed to execute
         // publish_execution_error(error_name, error_value, error_traceback);
         // publish_execution_error("TypeError", "123", {"!@#$", "*(*"});
+    }
 
-   }
-
-    nl::json interpreter::complete_request_impl(const std::string& /*code*/,int /*cursor_pos*/)
+    nl::json interpreter::complete_request_impl(const std::string& /*code*/, int /*cursor_pos*/)
     {
         nl::json jresult;
         jresult["status"] = "ok";
         return jresult;
     };
 
-    nl::json interpreter::inspect_request_impl(const std::string& /*code*/, int /*cursor_pos*/,int /*detail_level*/)
+    nl::json interpreter::inspect_request_impl(const std::string& /*code*/,
+                                               int /*cursor_pos*/,
+                                               int /*detail_level*/)
     {
         nl::json jresult;
         jresult["status"] = "ok";
         return jresult;
     };
-
-
 
     nl::json interpreter::is_complete_request_impl(const std::string& /*code*/)
     {
@@ -321,5 +319,4 @@ namespace xeus_calc
     void interpreter::shutdown_request_impl()
     {
     }
-
 }
