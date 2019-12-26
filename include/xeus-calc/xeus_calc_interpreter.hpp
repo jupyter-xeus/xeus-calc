@@ -1,3 +1,12 @@
+/***************************************************************************
+* Copyright (c) 2019, Sylvain Corlay, Johan Mabille, Wolf Vollprecht       *
+* Copyright (c) 2019, QuantStack                                           *
+*                                                                          *
+* Distributed under the terms of the BSD 3-Clause License.                 *
+*                                                                          *
+* The full license is in the file LICENSE, distributed with this software. *
+****************************************************************************/
+
 #ifndef XEUS_CALC_INTERPRETER_HPP
 #define XEUS_CALC_INTERPRETER_HPP
 
@@ -13,7 +22,6 @@ namespace xeus_calc
 {
     class XEUS_CALC_API interpreter : public xeus::xinterpreter
     {
-
     public:
 
         interpreter() = default;
