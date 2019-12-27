@@ -1,8 +1,8 @@
 # xeus-calc
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/QuantStack/xeus-calc/master?filepath=notebooks/Xeus-calc.ipynb)
-[![Travis](https://travis-ci.org/QuantStack/xeus-calc.svg?branch=master)](https://travis-ci.org/QuantStack/xeus-calc)
-[![Appveyor](https://ci.appveyor.com/api/projects/status/jh45g5pj44jqj8vw?svg=true)](https://ci.appveyor.com/project/QuantStack/xeus-calc)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jupyter-xeus/xeus-calc/master?filepath=notebooks/Xeus-calc.ipynb)
+[![Travis](https://travis-ci.org/jupyter-xeus/xeus-calc.svg?branch=master)](https://travis-ci.org/jupyter-xeus/xeus-calc)
+[![Appveyor](https://ci.appveyor.com/api/projects/status/t2u22uaevru2ugm8?svg=true)](https://ci.appveyor.com/project/jupyter-xeus/xeus-calc)
 
 Calculator as a Jupyter Kernel implemented with Xeus
 
