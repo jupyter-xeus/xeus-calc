@@ -21,9 +21,7 @@ To ensure that the installation works, it is preferable to install `xeus` in a f
 The safest usage is to create an environment named `xeus-calc-env` within your miniconda installation
 
 ```bash
-conda create -n xeus-calc-env
-conda activate xeus-calc-env
-conda install -c conda-forge xeus
+conda create -n xeus-calc-env -c conda-forge -c defaults xtl nlohmann_json cppzmq xeus
 ```
 
 Once you have installed ` xeus ` ,the  ` xeus-calc ` project is quite easy to install, you have to clone the repository, and run the following command lines :
