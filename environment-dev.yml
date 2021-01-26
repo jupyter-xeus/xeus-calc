@@ -1,0 +1,11 @@
+name: xeus-calc
+channels:
+  - conda-forge
+dependencies:
+  # Build dependencies
+  - cmake
+  # Host dependencies
+  - xeus=0.24.0
+  - nlohmann_json 
+  - cppzmq
+  - xtl=0.6
