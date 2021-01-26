@@ -1,8 +1,8 @@
 # xeus-calc
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jupyter-xeus/xeus-calc/master?filepath=notebooks/Xeus-calc.ipynb)
-[![Travis](https://travis-ci.org/jupyter-xeus/xeus-calc.svg?branch=master)](https://travis-ci.org/jupyter-xeus/xeus-calc)
+[![Azure Pipelines](https://dev.azure.com/jupyter-xeus/jupyter-xeus/_apis/build/status/jupyter-xeus.xeus-calc?branchName=master)](https://dev.azure.com/jupyter-xeus/jupyter-xeus/_build/latest?definitionId=10&branchName=master)
 [![Appveyor](https://ci.appveyor.com/api/projects/status/t2u22uaevru2ugm8?svg=true)](https://ci.appveyor.com/project/jupyter-xeus/xeus-calc)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jupyter-xeus/xeus-calc/master?filepath=notebooks/Xeus-calc.ipynb)
 
 Calculator as a Jupyter Kernel implemented with Xeus
 
