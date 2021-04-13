@@ -16,12 +16,10 @@ Launch the Jupyter notebook with `jupyter notebook` or Jupyter lab with `jupyter
 
 ## Installation
 
-To ensure that the installation works, it is preferable to install `xeus` in a fresh conda environment. It is also needed to use a [miniconda](https://conda.io/miniconda.html) installation because with the full [anaconda](https://www.anaconda.com/) you may have a conflict.
-
-The safest usage is to create an environment named `xeus-calc-env` within your miniconda installation
+To ensure that the installation works, it is preferable to install `xeus` in a fresh mamba/conda environment. 
 
 ```bash
-conda create -n xeus-calc-env -c conda-forge -c defaults xtl nlohmann_json cppzmq xeus
+mamba create -n xeus-calc-env -c conda-forge xtl nlohmann_json cppzmq xeus
 ```
 
 Once you have installed ` xeus ` ,the  ` xeus-calc ` project is quite easy to install, you have to clone the repository, and run the following command lines :
