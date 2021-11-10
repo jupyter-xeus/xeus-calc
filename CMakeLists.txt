@@ -41,7 +41,7 @@ configure_file (
 # ============
 
 # Be sure to use recent versions
-set(xeus_REQUIRED_VERSION 0.19.1)
+set(xeus_REQUIRED_VERSION 2.1.0)
 set(cppzmq_REQUIRED_VERSION 4.3.0)
 
 find_package(xeus ${xeus_REQUIRED_VERSION} REQUIRED)

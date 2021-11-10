@@ -29,7 +29,7 @@ install:
   - conda update -q conda
   - conda info -a
   # Host dependencies
-  - conda install xtl=0.7.1 xeus=1.0.0 nlohmann_json cppzmq gtest=1.8.0 -c conda-forge
+- conda install xtl=0.7.3 xeus=2.1.0 nlohmann_json cppzmq gtest=1.8.0 -c conda-forge
   # Build dependencies
   - conda install cmake -c conda-forge
   # Build and install xeus-calc
