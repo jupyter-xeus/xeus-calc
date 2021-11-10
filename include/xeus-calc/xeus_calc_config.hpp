@@ -12,7 +12,7 @@
 
 // Project version
 #define XCALC_VERSION_MAJOR 0
-#define XCALC_VERSION_MINOR 2
+#define XCALC_VERSION_MINOR 3
 #define XCALC_VERSION_PATCH 0
 
 // Composing the version string from major, minor and patch
