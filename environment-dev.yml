@@ -5,7 +5,6 @@ dependencies:
   # Build dependencies
   - cmake
   # Host dependencies
-  - xeus=5.1.1
   - xeus-zmq=3.1.0
   - nlohmann_json 
   - cppzmq
