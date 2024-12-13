@@ -19,7 +19,7 @@ Launch the Jupyter notebook with `jupyter notebook` or Jupyter lab with `jupyter
 To ensure that the installation works, it is preferable to install `xeus` in a fresh mamba/conda environment. 
 
 ```bash
-mamba create -n xeus-calc-env -c conda-forge xtl nlohmann_json cppzmq xeus
+mamba create -n xeus-calc-env -c conda-forge -f environment-dev.yml
 ```
 
 Once you have installed ` xeus ` ,the  ` xeus-calc ` project is quite easy to install, you have to clone the repository, and run the following command lines :

@@ -41,10 +41,10 @@ configure_file (
 # ============
 
 # Be sure to use recent versions
-set(xeus_REQUIRED_VERSION 2.1.0)
+set(xeus-zmq_REQUIRED_VERSION 3.0.0)
 set(cppzmq_REQUIRED_VERSION 4.3.0)
 
-find_package(xeus ${xeus_REQUIRED_VERSION} REQUIRED)
+find_package(xeus-zmq ${xeus-zmq_REQUIRED_VERSION} REQUIRED)
 find_package(cppzmq ${cppzmq_REQUIRED_VERSION} REQUIRED)
 
 # Flags
@@ -54,15 +54,16 @@ include(CheckCXXCompilerFlag)
 
 set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-    CHECK_CXX_COMPILER_FLAG("-std=c++14" HAS_CPP14_FLAG)
-
-    if (HAS_CPP14_FLAG)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-    else()
-        message(FATAL_ERROR "Unsupported compiler -- xeus requires C++14 support!")
-    endif()
-endif()
+#if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+#    CHECK_CXX_COMPILER_FLAG("-std=c++14" HAS_CPP14_FLAG)
+#
+#   if (HAS_CPP14_FLAG)
+#       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+#   else()
+#       message(FATAL_ERROR "Unsupported compiler -- xeus requires C++14 support!")
+#    endif()
+#endif()
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 # Target and link
 # ===============
@@ -82,10 +83,11 @@ set(XEUS_CALC_HEADERS
 
 # xeus-calc is the target for the library
 add_library(xeus-calc SHARED ${XEUS_CALC_SRC} ${XEUS_CALC_HEADERS})
-
+target_compile_features(xeus-calc PRIVATE cxx_std_17)
 
 # xcalc is the target for the kernel executable
 add_executable(xcalc src/main.cpp)
+target_compile_features(xcalc PRIVATE cxx_std_17)
 set_target_properties(xcalc PROPERTIES ENABLE_EXPORTS 1)
 target_link_libraries(xcalc PRIVATE xeus-calc)
 target_compile_definitions(xcalc PRIVATE XEUS_CALC_HOME="${XCALC_PREFIX}")
@@ -113,7 +115,7 @@ if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     set(BUILD_TESTS ON)
 endif()
 
-target_link_libraries(xeus-calc PUBLIC xeus)
+target_link_libraries(xeus-calc PUBLIC xeus-zmq)
 
 
 set_target_properties(xcalc PROPERTIES
