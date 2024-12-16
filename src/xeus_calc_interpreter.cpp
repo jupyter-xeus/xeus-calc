@@ -222,12 +222,11 @@ namespace xeus_calc
         return evaluation.back();
     }
 
-    nl::json interpreter::execute_request_impl(int execution_counter,
-                                               const std::string& code,
-                                               bool /*silent*/,
-                                               bool /*store_history*/,
-                                               nl::json /*user_expressions*/,
-                                               bool /*allow_stdin*/)
+    void interpreter::execute_request_impl(send_reply_callback cb,
+                                           int execution_counter,
+                                           const std::string& code,
+                                           xeus::execute_request_config config,
+                                           nl::json user_expression)
     {
         // You can use the C-API of your target language for executing the code,
         // e.g. `PyRun_String` for the Python C-API
@@ -254,14 +253,14 @@ namespace xeus_calc
             jresult["status"] = "ok";
             jresult["payload"] = nl::json::array();
             jresult["user_expressions"] = nl::json::object();
-            return jresult;
+            cb(jresult);
         }
         catch (const std::runtime_error& err)
         {
             nl::json jresult;
             publish_stream("stderr", err.what());
             jresult["status"] = "error";
-            return jresult;
+            cb(jresult);
         }
         // You can also use this method for publishing errors to the client, if the code
         // failed to execute
